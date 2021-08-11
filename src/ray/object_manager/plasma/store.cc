@@ -476,7 +476,7 @@ int PlasmaStore::AbortObject(const ObjectID &object_id,
     return 0;
   }
   // The client requesting the abort is the creator. Free the object.
-  RAY_CHECK(object_lifecycle_mgr_.AbortObject(object_id));
+  RAY_CHECK(object_lifecycle_mgr_.AbortObject(object_id) == PlasmaError::OK);
   client->object_ids.erase(it);
   return 1;
 }
