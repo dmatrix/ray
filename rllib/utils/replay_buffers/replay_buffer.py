@@ -97,18 +97,6 @@ class ReplayBuffer:
         return len(self._storage)
 
     @ExperimentalAPI
-    @Deprecated(old="add_batch", new="add", error=False)
-    def add_batch(self, batch: SampleBatchType, **kwargs) -> None:
-        """Deprecated in favor of new ReplayBuffer API."""
-        return self.add(batch, **kwargs)
-
-    @ExperimentalAPI
-    @Deprecated(old="replay", new="sample", error=False)
-    def replay(self, num_items: int = 1, **kwargs) -> Optional[SampleBatchType]:
-        """Deprecated in favor of new ReplayBuffer API."""
-        return self.sample(num_items, **kwargs)
-
-    @ExperimentalAPI
     def add(self, batch: SampleBatchType, **kwargs) -> None:
         """Adds a batch of experiences to this buffer.
 
@@ -280,10 +268,13 @@ class ReplayBuffer:
 
     def _encode_sample(self, idxes: List[int]) -> SampleBatchType:
         """Fetches concatenated samples at given indeces from the storage."""
-        samples = [self._storage[i] for i in idxes]
+        samples = []
+        for i in idxes:
+            self._hit_count[i] += 1
+            samples.append(self._storage[i])
 
         if samples:
-            # Assume all samples are of same type
+            # We assume all samples are of same type
             sample_type = type(samples[0])
             out = sample_type.concat_samples(samples)
         else:
@@ -299,3 +290,11 @@ class ReplayBuffer:
             name could not be determined.
         """
         return platform.node()
+
+    @Deprecated(old="ReplayBuffer.add_batch()", new="RepayBuffer.add()", error=False)
+    def add_batch(self, *args, **kwargs):
+        return self.add(*args, **kwargs)
+
+    @Deprecated(old="RepayBuffer.replay()", new="RepayBuffer.sample()", error=False)
+    def replay(self, *args, **kwargs):
+        return self.sample(*args, **kwargs)
